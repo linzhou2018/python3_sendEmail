@@ -1,1 +1,65 @@
 
+def Excel2Html(filename):
+    import os
+    from xlrd import open_workbook, formatting
+
+    ext = filename[-4:]
+    if ext == '.pdf':
+        return ''
+
+    filepath = filename
+
+    wb = open_workbook(filepath, formatting_info=True)
+    sheet = wb.sheet_by_index(0)
+    html = '<table  align="center"  class="previewtable" border="1" cellpadding="1" cellspacing="1">'
+
+    mergedcells = {}
+    mergedsapn = {}
+    mergedcellvalue = {}
+    for crange in sheet.merged_cells:
+        rlo, rhi, clo, chi = crange
+        for rowx in range(rlo, rhi):
+            for colx in range(clo, chi):
+                mergedcells[(rowx, colx)] = False
+                value = str(sheet.cell_value(rowx, colx))
+                if value.strip() != '':
+                    mergedcellvalue[(rlo, clo)] = value
+
+        mergedcells[(rlo, clo)] = True
+        mergedsapn[(rlo, clo)] = (rhi - rlo, chi - clo)
+        mergedsapn[(rlo, clo)] = (rhi - rlo, chi - clo)
+
+    for row in range(sheet.nrows):
+        html = html + '<tr>'
+        for col in range(sheet.ncols):
+            if (row, col) in mergedcells:
+                if mergedcells[(row, col)] == True:
+                    rspan, cspan = mergedsapn[(row, col)]
+                    value = ''
+                    if (row, col) in mergedcellvalue:
+                        value = mergedcellvalue[(row, col)]
+                    if col < 19:
+                        html = html + '<td bgcolor="#808080" align="center"  rowspan=%s colspan=%s>%s</td>' % (
+                        rspan, cspan, value)
+                    elif col >= 39 and col < 52:
+                        html = html + '<td bgcolor="#808080" align="center"  rowspan=%s colspan=%s>%s</td>' % (
+                        rspan, cspan, value)
+                    else:
+                        html = html + '<td  bgcolor="#55e05f" align="center" rowspan=%s colspan=%s>%s</td>' % (
+                        rspan, cspan, value)
+            else:
+                print
+                col
+                value = sheet.cell_value(row, col)
+                if col <= 18:
+                    html = html + '<td  align="center" bgcolor="#808080">' + str(value).replace('.0', '') + '</td>'
+                elif col >= 39 and col < 52:
+                    html = html + '<td align="center" bgcolor="#808080">' + str(value).replace('.0', '') + '</td>'
+                else:
+                    html = html + '<td align="center" bgcolor="#55e05f">' + str(value).replace('.0', '') + '</td>'
+
+        html = html + '</tr>'
+
+    html = html + '</table>'
+
+    return html
